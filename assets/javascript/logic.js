@@ -12,15 +12,16 @@ let timerID;
  
  var submit = document.createElementById("submit");
  
- var questionTitle = document.createElementById("questionTitle");
+ var questionsElement = document.createElementById("questions");
 
- var choicesListParent = document.createElementById("choicesListParent");
- 
- var timerDisplay = document.createElementById("timerDisplay");
+ var choicesElement = document.createElementById("choices");
 
- var startBtn = document.createElementById("startBtn");
+ var startButton = document.createElementById("start");
  
- var questionScreen = document.createElementById("questionScreen");
+var initialsElement = document.createElementById("initials");
+
+var feedbackElement = document.createElementById("feedback");
+
 
  function startQuiz() {
     var sec = 145;
@@ -45,91 +46,87 @@ let timerID;
 var sfxRight = new Audio("assets/sfx/correct.wav");
 
 
-
-
 function questionClick () {
-    if (this.value === questions [currentQuestionIndex].correctAnswer) {
-time +10 ;
+    if (this.value !== questions[currentQuestionIndex].answer) {
+        time -= 15 ;
 
-if (this.value === questions [currentQuestionIndex].wrongAnswer) {
-    time -= 10;
-}}
- timerElement.textContent = time;
+        if (time < 0) {
+        time = 0 ;
+        timerElement.textContent = '00:00';
+        feedbackElement.textContent = 'Incorrect!';
+        } else {
+        sfxRight.play();
+        feedbackElement.textContent = "Correct!"; }
+        
  
- feedbackElement.textContent = "wrong";
-}
-else {
-    sfxRight.play();
-    feedbackElement.textContent = "correct";
-}
-
     feedbackElement.setAttribute("class", "feedback");
 
-    setTimeout (function () {
-        feedbackElement.setAttribute("class", "feedback hidden");
+    setTimeout(function() {
+        feedbackElement.setAttribute("class", "feedback hide");
     }, 1000);
 
-
-    if (currentQuestionIndex === questions.length) {
+    if(currentQuestionIndex === questions.length) {
         quizEnd()
     } else {
         getQuestion();
-    }
+    }}}
 
-    function startTimer() {
-        quizTimer = setInterval (function () {
-            time --;
-            timerDisplay.textContent = time;
-            if (time <= 0) {
-                time = 0;
-                endQuiz ();
+        function getQuestion () {
+            let currentQuestion = questions[currentQuestionIndex];
+            let questionTitle = document.createElementById("questionTitle");
+            questionTitle.textContent = currentQuestion.title;
+            choicesElement.innerHTML = "";
+            currentQuestion.choices.forEach(function(choice, index) {
+                let choiceElement = document.createElement("button");
+                choiceElement.setAttribute("class", choice);
+                choiceButton.setAttribute("value", choice);
+                choiceButton.textContent = `${index + 1}. ${choice}`;
+                choiceButton.addEventListener("click", questionClick);
+                choicesElement.appendChild(choiceButton);
+                
+            })}
+
+
+            function quizEnd () {
+
+                clearInterval(timerID);
+                
+                let endScreenElement = document.createElementById("endScreen");
+                endScreenElement.removeAttribute("class");
+                let finalScore = document.createElementById("finalScore");
+                finalScoreElement.textContent = time;
+                questionsElement.setAttribute("class", "hide");
+                questionsElement.removeAttribute("class");
+                timerID = setInterval (clockTick, 1000)
+                timerElement.textContent = time;
+                getQuestionElement();
             }
-        }, 1000);
-    }
 
-    function startQuestions () {
-        var currentQuestion = questions [currentQuestionIndex].title;
-        questionTitle.textContent = currentQuestion;
-        answersListParent.innerHTML = "";
-        var currentQuestionAnswers = questions [currentQuestionIndex].choices;
-        currentQuestionAnswers.forEach (function (answer) {
-            var answerButton = document.createElement("button");
-            answerButton.setAttribute("value", answer);
-            answerButton.textContent = answer;
-            answerButton.onclick = checkAnswerSelected;
-            answersListParent.appendChild(answerButton);
-        )
-        }
+            function saveHighScore () {
+                let initials = initialsElement.value.trim();
+                console.log(initials);
+                
+                if (initials !== "") {
+                    let highScores = JSON.parse(localStorage.getItem("highScores")) || [];
+                    let newScore = {
+                    score: time,
+                    initials: initials
+                }
+                highScores.push(newScore);
+                localStorage.setItem("highScores", JSON.stringify(highScores));
+                
+                window.location.assign("highscores.html");
+
+            }}
+
+            function checkForEnter (event) {
+            if(event.key === "Enter") {
+                saveHighScore();
+            }}
+
+            startButton.addEventListener("click", startQuiz);
             
+            submitButton.addEventListener("click", saveHighScore);
 
- function checkAnswerSelected() {
-    var answerSelected = this.value;
-    if (answerSelected === questions[questionAskedIndex].answer) {
-        alert("correct")
-    } else{
-     alert("wrong")
-     time -=10;
-     if (time <= 0){
-        endQuiz();
-     }
-        timerDisplay.textContent = time;
-    }
-    questionAskedIndex++;
-    console.log(questionAskedIndex)
-    if (questionAskedIndex === questions.length){
-        endQuiz();
-    }
-    startQuestions();
-}
-
-    initialsInput.addEventListener("keyup", function (event) {
-        checkForEnterKey(event);
-    }
-
-
-
-
-    addEventListener, ("click", questionClick);
-    addEventListener, ("click", startQuizTimer);
-    addEventListener, ("click", startQuestions);
+            initialsElement.addEventListener("keypress", checkForEnter);
 
